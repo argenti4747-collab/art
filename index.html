@@ -249,6 +249,23 @@ window.addEventListener('load',sendH);window.addEventListener('resize',sendH);
 if(window.ResizeObserver){new ResizeObserver(sendH).observe(document.body)}else{setInterval(sendH,500)}
 
 /* ---------- sheet loading (JSONP, 실패하면 내장 기본값 사용) ---------- */
+var GIDS={'기본설정':'226668990','슬롯':'2020527074','진행방식':'980282415','포트폴리오':'1777921497','견적':'661998524','확인사항':'19006780','신청양식':'2042475007'};
+function parseCSV(t){var rows=[],row=[],cur='',q=false,i=0;t=String(t).replace(/^\uFEFF/,'');
+ for(;i<t.length;i++){var c=t[i];
+  if(q){if(c==='"'){if(t[i+1]==='"'){cur+='"';i++}else q=false}else cur+=c}
+  else if(c==='"')q=true;
+  else if(c===','){row.push(cur);cur=''}
+  else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(cur);cur='';rows.push(row);row=[]}
+  else cur+=c}
+ if(cur!==''||row.length){row.push(cur);rows.push(row)}
+ return rows.filter(function(r){return r.some(function(x){return String(x).trim()!==''})})}
+function loadCSV(name,cb){
+ var done=false,ctl=window.AbortController?new AbortController():null;
+ var timer=setTimeout(function(){if(!done){done=true;if(ctl)ctl.abort();cb(null)}},8000);
+ fetch('https://docs.google.com/spreadsheets/d/'+SHEET_ID+'/export?format=csv&gid='+GIDS[name],{signal:ctl?ctl.signal:undefined})
+  .then(function(r){if(!r.ok)throw new Error('http '+r.status);return r.text()})
+  .then(function(t){if(done)return;done=true;clearTimeout(timer);var rows=parseCSV(t);cb(rows.length>1?rows:null)})
+  .catch(function(){if(done)return;done=true;clearTimeout(timer);cb(null)})}
 function loadTab(name,cb){
  var fn='__gs_'+Math.random().toString(36).slice(2),done=false,s=document.createElement('script');
  function fin(rows){if(done)return;done=true;try{delete window[fn]}catch(e){window[fn]=undefined}if(s.parentNode)s.parentNode.removeChild(s);cb(rows)}
@@ -264,8 +281,9 @@ var DEF=JSON.parse(document.getElementById('def-data').textContent);
 DATA=JSON.parse(JSON.stringify(DEF));
 render();
 var left=TABS.length;
-TABS.forEach(function(t){loadTab(t,function(rows){
+TABS.forEach(function(t){var after=function(rows){
  if(rows&&rows.length>1){DATA[t]=rows}
- if(--left===0){render()}})});
+ if(--left===0){render()}};
+ loadCSV(t,function(rows){if(rows)after(rows);else loadTab(t,after)})});
 })();
 </script></body></html>
