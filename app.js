@@ -18,9 +18,10 @@ function settings(){var o={};rowsOf('기본설정').forEach(function(r){if(r[0])
 var SECKEYS=['슬롯','진행 방식','리깅 포폴','일러스트 포폴','확인사항','신청 · 견적','협업작가'];
 var SECDEF=[['01','SLOT','작업 슬롯 현황'],['02','PROCESS','진행 방식'],['03','RIGGING PORTFOLIO','리깅 포트폴리오'],['04','ILLUSTRATION','일러스트 포트폴리오'],['05','MUST READ','확인 사항'],['06','APPLICATION & ESTIMATE','신청 양식과 견적 계산기'],['07','COLLABORATORS','협업 작가님']];
 function secLabel(cfg,title){var i=SECKEYS.indexOf(title),d=SECDEF[i]||['','',''];var v=cfg['구역'+d[0]+' 번호/영문/한글'];if(v){var p=v.split('|').map(function(x){return x.trim()});if(p.length>=3)return p}return d}
+var POS={};
 var SECTITLE={'리깅 포폴':'리깅 포트폴리오','일러스트 포폴':'일러스트 포트폴리오'};
 function sec(cfg,title,body,id,lab){
- var l=secLabel(cfg,title);var sd=SECDEF[SECKEYS.indexOf(title)]||['','',''];var shown=cfg['구역'+sd[0]+' 제목']||(lab?String(lab).replace(/포폴/g,'포트폴리오'):'')||SECTITLE[title]||title;
+ var l=secLabel(cfg,title).slice();if(POS[title])l[0]=('0'+POS[title]).slice(-2);var sd=SECDEF[SECKEYS.indexOf(title)]||['','',''];var shown=cfg['구역'+sd[0]+' 제목']||(lab?String(lab).replace(/포폴/g,'포트폴리오'):'')||SECTITLE[title]||title;
  return '<section'+(id?' id="'+id+'"':'')+' style="padding:44px 16px 48px;"><div style="max-width:960px;margin:0 auto;background:#fff;border:1.5px solid '+S+';border-radius:28px;padding:28px 22px 30px;box-shadow:0 10px 30px rgba(63,109,181,.06);">'+
  '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;"><span style="background:'+B+';color:#fff;border-radius:99px;padding:3px 10px;font-size:12px;font-weight:800;">'+esc(l[0])+'</span><span style="font-size:12px;font-weight:800;letter-spacing:2px;color:#222;white-space:nowrap;">'+esc(l[1])+'</span><span style="flex:1;border-top:1px dotted '+S+';"></span><span style="font-size:12px;color:'+ST+';white-space:nowrap;">'+esc(l[2])+'</span></div>'+
  '<h2 style="font-size:26px;font-weight:800;margin:0 0 20px;color:#111;">'+esc(shown)+'</h2>'+body+'</div></section>'}
@@ -119,7 +120,7 @@ function qhead(id,t){return '<p id="'+id+'" style="font-weight:800;font-size:15p
 function baseLabel(n,p,g,chk){return '<label data-opt="base" data-price="'+p+'" data-grp="'+g+'" style="'+ROFF+'"><span>'+esc(n)+'</span><span style="display:flex;gap:10px;align-items:center;">'+won(p)+'<input type="radio" name="base"'+(chk?' checked':'')+' style="accent-color:'+B+';"></span></label>'}
 function addLabel(n,p,g,kind){return '<label data-opt="'+kind+'" data-price="'+p+'" data-grp="'+g+'" style="'+ROFF+'"><span>'+esc(n)+'</span><span style="display:flex;gap:10px;align-items:center;">+'+won(p)+'<input type="checkbox" style="accent-color:'+B+';"></span></label>'}
 function estSec(cfg){
- var base={'프리미엄':[],'일러':[],'리깅':[],'일러 + 리깅':[]},baseOrder=[],add={ill:[],rig:[],both:[]},oth=[],priv=false;
+ var base={},baseOrder=[],add={ill:[],rig:[],both:[]},oth=[],priv=false;
  rowsOf('견적').forEach(function(r){
   var k=String(r[0]||'').trim().replace(/\s+/g,' '),g=String(r[1]||'').trim(),n=String(r[2]||'').trim(),praw=String(r[3]==null?'':r[3]).trim();
   if(!n)return;
@@ -132,7 +133,7 @@ function estSec(cfg){
    var gr=GRP[g];if(gr==null||gr==='')gr=(k==='일러'?'ill':k==='리깅'?'rig':k==='일러 + 리깅'?'both':'none');
    base[k].push([n,p,gr])}});
  var q='',first=true;
- var cats=['프리미엄','일러','리깅','일러 + 리깅'].concat(baseOrder).filter(function(c,i,arr){return base[c]&&base[c].length&&arr.indexOf(c)===i});
+ var cats=baseOrder.filter(function(c,i,arr){return base[c]&&base[c].length&&arr.indexOf(c)===i});
  var cid=function(i){return 'q-b'+i};
  cats.forEach(function(c,i){q+=qhead(cid(i),c);base[c].forEach(function(b){q+=baseLabel(b[0],b[1],b[2],first);first=false})});
  q+=qhead('q-add','추가옵션')+'<p id="addhint" style="color:'+ST+';font-size:13px;margin:0 0 8px;">기본 양식을 선택하면 해당 옵션이 표시됩니다.</p>';
@@ -155,13 +156,22 @@ function heroHtml(cfg){
  var marq='<style>@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}</style><div style="overflow:hidden;background:#fff;border-bottom:1px solid '+S+';"><div style="display:flex;width:max-content;animation:mq 28s linear infinite;font-size:12px;font-weight:800;letter-spacing:2px;color:'+B+';padding:9px 0;white-space:nowrap;"><span>'+rep+'</span><span>'+rep+'</span></div></div>';
  return marq+'<section style="padding:22px 16px 6px;"><div style="max-width:960px;margin:0 auto;background:linear-gradient(135deg,'+BD+','+B+');color:#fff;border:1.5px solid '+S+';border-radius:28px;padding:48px 28px 52px;position:relative;overflow:hidden;box-shadow:0 10px 30px rgba(63,109,181,.18);"><i style="position:absolute;right:-60px;top:-60px;width:240px;height:240px;border-radius:50%;background:rgba(183,213,241,.40);"></i><i style="position:absolute;left:-40px;bottom:-80px;width:200px;height:200px;border-radius:50%;background:rgba(255,255,255,.10);"></i><span style="position:relative;display:inline-block;border:1px solid '+S+';color:'+S+';padding:4px 12px;font-size:14px;font-weight:700;margin-bottom:20px;border-radius:99px;">'+esc(cfg['배너 라벨']||'')+'</span><h1 style="position:relative;font-size:34px;line-height:1.25;font-weight:800;margin:0 0 14px;color:#fff;">'+esc(cfg['배너 제목']||'')+'</h1><p style="position:relative;color:#e3effc;margin:0 0 22px;font-size:15px;">'+esc(cfg['배너 소개 1줄']||'')+'<br>'+esc(cfg['배너 소개 2줄']||'')+'</p><a href="#est" data-go="est" style="position:relative;display:inline-block;background:'+S+';color:#111;border-radius:99px;padding:12px 24px;font-weight:700;text-decoration:none;font-size:14px;">'+esc(cfg['배너 버튼']||'')+'</a></div></section>'}
 
+function secOrder(cfg){
+ var def=SECKEYS.slice(),raw=cfg['구역 순서'];if(!raw)return def;
+ var out=[];String(raw).split(/[,>|\n]/).forEach(function(x){var t=x.trim();if(!t)return;
+  var hit=canonName(t.replace(/\s+/g,''));if(def.indexOf(hit)<0)hit=def.filter(function(k){return k.replace(/\s+/g,'')===t.replace(/\s+/g,'')})[0];
+  if(hit&&out.indexOf(hit)<0)out.push(hit)});
+ def.forEach(function(k){if(out.indexOf(k)<0)out.push(k)});return out}
+function canonName(t){t=t.replace(/포트폴리오/g,'포폴');if(/^리깅/.test(t))return '리깅 포폴';if(/^일러/.test(t))return '일러스트 포폴';if(/^협업/.test(t))return '협업작가';if(/^신청|^견적/.test(t))return '신청 · 견적';if(/^확인/.test(t))return '확인사항';if(/^진행/.test(t))return '진행 방식';if(/^슬롯/.test(t))return '슬롯';return t}
 function render(){
- var cfg=settings(),pf=portfolio();
- var html=heroHtml(cfg)+slotsSec(cfg)+procSec(cfg)+
-  sec(cfg,'리깅 포폴',(pf['리깅 포폴']||{html:''}).html,'sec-rig',(pf['리깅 포폴']||{}).label)+
-  sec(cfg,'일러스트 포폴',(pf['일러스트 포폴']||{html:''}).html,'sec-ill',(pf['일러스트 포폴']||{}).label)+
-  infoSec(cfg)+estSec(cfg)+
-  sec(cfg,'협업작가',(pf['협업작가']||{html:''}).html,'sec-collab',(pf['협업작가']||{}).label);
+ var cfg=settings(),pf=portfolio(),order=secOrder(cfg);
+ order.forEach(function(k,i){POS[k]=i+1});
+ var B2={'슬롯':function(){return slotsSec(cfg)},'진행 방식':function(){return procSec(cfg)},
+  '리깅 포폴':function(){return sec(cfg,'리깅 포폴',(pf['리깅 포폴']||{html:''}).html,'sec-rig',(pf['리깅 포폴']||{}).label)},
+  '일러스트 포폴':function(){return sec(cfg,'일러스트 포폴',(pf['일러스트 포폴']||{html:''}).html,'sec-ill',(pf['일러스트 포폴']||{}).label)},
+  '확인사항':function(){return infoSec(cfg)},'신청 · 견적':function(){return estSec(cfg)},
+  '협업작가':function(){return sec(cfg,'협업작가',(pf['협업작가']||{html:''}).html,'sec-collab',(pf['협업작가']||{}).label)}};
+ var html=heroHtml(cfg)+order.map(function(k){return B2[k]()}).join('');
  $('#app').innerHTML=html;
  bind();
 }
