@@ -28,7 +28,7 @@ function sec(cfg,title,body,id,lab){
 function sub(t){return '<p style="margin:18px 0 10px;font-size:14px;font-weight:800;color:'+BD+';border-left:4px solid '+B+';padding-left:10px;">'+esc(t)+'</p>'}
 var BX={open:['모집중'],wait:['대기중'],full:['마감'],closed:['닫힘']};
 var SLOTIMG=__SLOTIMGS__;
-function slotBox(st){return '<img data-slot="'+st+'" src="'+SLOTIMG[st]+'" alt="'+BX[st][0]+'" style="display:block;width:clamp(92px,25vw,132px);height:auto;">'}
+function slotBox(st){return '<img data-slot="'+st+'" src="'+SLOTIMG[st]+'" alt="'+BX[st][0]+'" style="display:block;width:clamp(46px,12.5vw,66px);height:auto;">'}
 function slotsSec(cfg){
  var html='';
  rowsOf('슬롯').forEach(function(r){var m=String(r[0]||'').trim();if(!m)return;
