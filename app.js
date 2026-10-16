@@ -119,28 +119,27 @@ function qhead(id,t){return '<p id="'+id+'" style="font-weight:800;font-size:15p
 function baseLabel(n,p,g,chk){return '<label data-opt="base" data-price="'+p+'" data-grp="'+g+'" style="'+ROFF+'"><span>'+esc(n)+'</span><span style="display:flex;gap:10px;align-items:center;">'+won(p)+'<input type="radio" name="base"'+(chk?' checked':'')+' style="accent-color:'+B+';"></span></label>'}
 function addLabel(n,p,g,kind){return '<label data-opt="'+kind+'" data-price="'+p+'" data-grp="'+g+'" style="'+ROFF+'"><span>'+esc(n)+'</span><span style="display:flex;gap:10px;align-items:center;">+'+won(p)+'<input type="checkbox" style="accent-color:'+B+';"></span></label>'}
 function estSec(cfg){
- var base={'프리미엄':[],'일러':[],'리깅':[],'일러 + 리깅':[]},add={ill:[],rig:[],both:[]},oth=[],priv=false;
+ var base={'프리미엄':[],'일러':[],'리깅':[],'일러 + 리깅':[]},baseOrder=[],add={ill:[],rig:[],both:[]},oth=[],priv=false;
  rowsOf('견적').forEach(function(r){
   var k=String(r[0]||'').trim().replace(/\s+/g,' '),g=String(r[1]||'').trim(),n=String(r[2]||'').trim(),praw=String(r[3]==null?'':r[3]).trim();
   if(!n)return;
   if(k==='일러+리깅')k='일러 + 리깅';
   if(/비공개/.test(n)){priv=n;return}
   var p=num(praw);
-  if(k==='프리미엄'){base['프리미엄'].push([n,p,GRP[g]==null?'none':GRP[g]])}
-  else if(k==='일러')base['일러'].push([n,p,'ill']);
-  else if(k==='리깅')base['리깅'].push([n,p,'rig']);
-  else if(k==='일러 + 리깅')base['일러 + 리깅'].push([n,p,'both']);
-  else if(k==='추가옵션'){var gg=GRP[g];if(add[gg])add[gg].push([n,p])}
-  else if(k==='기타옵션')oth.push([n,p])});
+  if(k==='추가옵션'){var gg=GRP[g];if(add[gg])add[gg].push([n,p])}
+  else if(k==='기타옵션')oth.push([n,p]);
+  else if(k){if(!base[k]){base[k]=[];baseOrder.push(k)}
+   var gr=GRP[g];if(gr==null||gr==='')gr=(k==='일러'?'ill':k==='리깅'?'rig':k==='일러 + 리깅'?'both':'none');
+   base[k].push([n,p,gr])}});
  var q='',first=true;
- [['프리미엄','q-prem'],['일러','q-ill'],['리깅','q-rig'],['일러 + 리깅','q-both']].forEach(function(s){
-  if(!base[s[0]].length)return;q+=qhead(s[1],s[0]);
-  base[s[0]].forEach(function(b){q+=baseLabel(b[0],b[1],b[2],first);first=false})});
+ var cats=['프리미엄','일러','리깅','일러 + 리깅'].concat(baseOrder).filter(function(c,i,arr){return base[c]&&base[c].length&&arr.indexOf(c)===i});
+ var cid=function(i){return 'q-b'+i};
+ cats.forEach(function(c,i){q+=qhead(cid(i),c);base[c].forEach(function(b){q+=baseLabel(b[0],b[1],b[2],first);first=false})});
  q+=qhead('q-add','추가옵션')+'<p id="addhint" style="color:'+ST+';font-size:13px;margin:0 0 8px;">기본 양식을 선택하면 해당 옵션이 표시됩니다.</p>';
  ['ill','rig','both'].forEach(function(g){q+='<div data-addgrp="'+g+'" style="display:none;">'+add[g].map(function(a){return addLabel(a[0],a[1],g,'add')}).join('')+'</div>'});
  q+='<p style="font-weight:800;font-size:14px;margin:18px 0 10px;color:#444;">기타 옵션</p>'+oth.map(function(a){return addLabel(a[0],a[1],'','other')}).join('');
  if(priv)q+='<label id="priv" style="'+ROFF+'"><span>'+esc(priv)+'</span><input type="checkbox" style="accent-color:'+B+';"></label>';
- var toc=[['q-prem','프리미엄'],['q-ill','일러'],['q-rig','리깅'],['q-both','일러 + 리깅'],['q-add','추가옵션']].map(function(t){return '<a href="#'+t[0]+'" data-go="'+t[0]+'" style="display:inline-block;border:1px solid '+S+';background:#fff;color:'+BD+';border-radius:99px;padding:7px 16px;font-size:13px;font-weight:700;text-decoration:none;">'+t[1]+'</a>'}).join('');
+ var toc=cats.map(function(c,i){return [cid(i),c]}).concat([['q-add','추가옵션']]).map(function(t){return '<a href="#'+t[0]+'" data-go="'+t[0]+'" style="display:inline-block;border:1px solid '+S+';background:#fff;color:'+BD+';border-radius:99px;padding:7px 16px;font-size:13px;font-weight:700;text-decoration:none;">'+t[1]+'</a>'}).join('');
  var INP='width:100%;box-sizing:border-box;border:1px solid '+S+';border-radius:8px;padding:11px 12px;font:inherit;font-size:14px;background:#fff;';
  var fields=rowsOf('신청양식').filter(function(r){return r[0]}).map(function(r,i){var l=String(r[0]),ph=String(r[1]||''),area=/참고/.test(l);
   return '<label style="display:block;margin-bottom:12px;"><span style="display:block;font-weight:700;font-size:13px;margin-bottom:5px;color:#444;">'+esc(l)+'</span>'+(area?'<textarea data-f="'+i+'" data-l="'+esc(l)+'" rows="3" placeholder="'+esc(ph)+'" style="'+INP+'resize:vertical;"></textarea>':'<input data-f="'+i+'" data-l="'+esc(l)+'" type="text" placeholder="'+esc(ph)+'" style="'+INP+'">')+'</label>'}).join('');
